@@ -3222,7 +3222,7 @@ def verify_dmesg(dmesg_log_file=None, ignore_result=False, level_check=3,
     :param raise: if ignore_result=False, raise TestFail exception on
                   observing errors/crash
     """
-    cmd = "dmesg -T -l %s|grep ." % ",".join(map(str, xrange(0, int(level_check))))
+    cmd = "dmesg -T -l %s|grep -iE 'err|fail'" % ",".join(map(str, xrange(0, int(level_check))))
     if session:
         environ = "guest"
         status, output = session.cmd_status_output(cmd)
