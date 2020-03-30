@@ -606,7 +606,7 @@ class VM(virt_vm.BaseVM):
                 if 'aarch64' in params.get('vm_arch_name', arch.ARCH):
                     if "rombar" in devices.execute_qemu("-device %s,?"
                                                         % model):
-                        dev.set_param("rombar", 0)
+                        dev.set_param("rombar", 1)
             else:
                 dev = qdevices.QCustomDevice('net', backend='type')
                 dev.set_param('type', 'nic')
