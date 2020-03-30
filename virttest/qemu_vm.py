@@ -17,6 +17,7 @@ import math
 from functools import partial, reduce
 from operator import mul
 
+import distro
 import aexpect
 from avocado.core import exceptions
 from avocado.utils import process
@@ -772,6 +773,9 @@ class VM(virt_vm.BaseVM):
 
         def add_tcp_redir(devices, host_port, guest_port):
             # If the new syntax is supported, don't add -redir
+            if 'openEuler' in distro.linux_distribution():
+                logging.warn("option -redir no support for openEuler")
+                return ""
             if "[,hostfwd=" in devices.get_help_text():
                 return ""
             else:
