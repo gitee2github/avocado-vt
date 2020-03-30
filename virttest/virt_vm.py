@@ -519,7 +519,7 @@ def session_handler(func):
                 vm.connect_uri = uri
                 vm.session = vm.wait_for_serial_login()
             else:
-                vm.session = vm.wait_for_login()
+                vm.session = vm.wait_for_login(serial=True)
             return func(vm, *args, **kwargs)
         finally:
             if vm.session:
