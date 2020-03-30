@@ -30,6 +30,7 @@ import select
 import locale
 import base64
 import aexpect
+import platform
 
 from avocado.utils import path
 from avocado.utils import process
@@ -1428,6 +1429,11 @@ def undefine(name, options=None, **dargs):
     :return: CmdResult object
     """
     cmd = "undefine %s" % name
+    if "aarch" in platform.machine():
+        if options is None:
+            options = "--nvram"
+        if "--nvram" not in options:
+            options += " --nvram"
     if options is not None:
         cmd += " %s" % options
 
