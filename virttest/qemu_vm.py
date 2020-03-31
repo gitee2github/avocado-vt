@@ -1288,6 +1288,30 @@ class VM(virt_vm.BaseVM):
                 numa_cmd += ",nodeid=%s" % nodeid
             return numa_cmd
 
+        def add_numa_object_mem(devices, numa_memdev=None, host_nodes=None,
+                                policy=None, prealloc=None, mem_path=None, size=None):
+            """
+            This function is used to add node mem object for numa node memdev.
+            eg:"-object memory-backend-ram,id=ram-node2,size=1024,host-nodes=0,policy=bind"
+            """
+            if not devices.has_option("object"):
+                return ""
+            if mem_path is None:
+                numa_mem_cmd = " -object memory-backend-ram"
+            else:
+                numa_mem_cmd = " -object memory-backend-file,mem-path=%s" % mem_path
+            if numa_memdev is not None:
+                numa_mem_cmd += ",id=%s" % numa_memdev
+            if host_nodes is not None:
+                numa_mem_cmd += ",host-nodes=%s" % host_nodes
+            if policy is not None:
+                numa_mem_cmd += ",policy=%s" % policy
+            if prealloc is not None:
+                numa_mem_cmd += ",prealloc=%s" % prealloc
+            if size is not None:
+                numa_mem_cmd += ",size=%s" % size
+            return numa_mem_cmd
+
         def add_balloon(devices, devid=None, bus=None,
                         use_old_format=None, options={}):
             """
@@ -1609,6 +1633,14 @@ class VM(virt_vm.BaseVM):
             numa_cpus = numa_params.get("numa_cpus")
             numa_nodeid = numa_params.get("numa_nodeid")
             numa_memdev = numa_params.get("numa_memdev")
+            node_num = numa_node.split("e", 1)[1]
+            node_mem_size = numa_params.get("size_mem%s" % node_num)
+            host_nodes = numa_params.get("host-nodes_mem%s" % node_num)
+            policy_mem = numa_params.get("policy_mem")
+            prealloc_mem = numa_params.get("prealloc_mem%s" % node_num)
+            mem_path = numa_params.get("mem-path")
+            if mem_path is None:
+                mem_path = numa_params.get("mem-path_mem%s" % node_num)
             if numa_mem is not None:
                 numa_total_mem += int(numa_mem)
             if numa_cpus is not None:
@@ -1616,6 +1648,12 @@ class VM(virt_vm.BaseVM):
             cmdline = add_numa_node(devices, numa_memdev,
                                     numa_mem, numa_cpus, numa_nodeid)
             devices.insert(StrDev('numa', cmdline=cmdline))
+
+            if numa_memdev is not None and 'aarch64' in params.get('vm_arch_name', arch.ARCH):
+                cmdline = add_numa_object_mem(devices, numa_memdev, host_nodes,
+                                              policy_mem, prealloc_mem, mem_path,
+                                              node_mem_size)
+                devices.insert(StrDev('object', cmdline=cmdline))
 
         if params.get("numa_consistency_check_cpu_mem", "no") == "yes":
             if (numa_total_cpus > vcpu_maxcpus or numa_total_mem > int(mem) or
