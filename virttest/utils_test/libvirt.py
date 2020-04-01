@@ -973,7 +973,7 @@ class PoolVolumeTest(object):
                 extra = "--source-host %s --source-path %s" % (hostip,
                                                                source_name)
                 extra += " --source-format %s" % source_format
-                process.system("setsebool virt_use_fusefs on")
+                process.system("setsebool -P virt_use_fusefs on")
             else:
                 nfs_server_dir = self.params.get(
                     "nfs_server_dir", "nfs-server")
