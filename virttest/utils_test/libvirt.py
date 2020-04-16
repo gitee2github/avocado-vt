@@ -376,6 +376,7 @@ def setup_or_cleanup_nfs(is_setup, mount_dir="nfs-mount", is_mount=False,
                          export_options="rw,no_root_squash",
                          mount_options="rw",
                          export_dir="nfs-export",
+                         nfs_server_ip="127.0.0.1",
                          restore_selinux="",
                          rm_export_dir=True,
                          set_selinux_permissive=False):
@@ -432,7 +433,7 @@ def setup_or_cleanup_nfs(is_setup, mount_dir="nfs-mount", is_mount=False,
 
     nfs_params = {"nfs_mount_dir": mount_dir, "nfs_mount_options": mount_options,
                   "nfs_mount_src": export_dir, "setup_local_nfs": "yes",
-                  "export_options": export_options}
+                  "export_options": export_options, "nfs_server_ip": nfs_server_ip}
     _nfs = nfs.Nfs(nfs_params)
 
     if is_setup:
@@ -2650,6 +2651,7 @@ def set_vm_disk(vm, params, tmp_dir=None, test=None):
     mnt_path_name = params.get("mnt_path_name", "nfs-mount")
     exp_opt = params.get("export_options", "rw,no_root_squash,fsid=0")
     exp_dir = params.get("export_dir", "nfs-export")
+    nfs_server_ip = params.get("nfs_server_ip", "127.0.0.1")
     first_disk = vm.get_first_disk_devices()
     logging.debug("first disk is %s", first_disk)
     blk_source = first_disk['source']
@@ -2783,7 +2785,8 @@ def set_vm_disk(vm, params, tmp_dir=None, test=None):
         res = setup_or_cleanup_nfs(True, mnt_path_name,
                                    is_mount=True,
                                    export_options=exp_opt,
-                                   export_dir=exp_dir)
+                                   export_dir=exp_dir,
+                                   nfs_server_ip=nfs_server_ip)
         exp_path = res["export_dir"]
         mnt_path = res["mount_dir"]
         params["selinux_status_bak"] = res["selinux_status_bak"]

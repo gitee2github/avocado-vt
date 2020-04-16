@@ -188,7 +188,7 @@ class Nfs(object):
 
         elif params.get("setup_local_nfs") == "yes":
             self.nfs_setup = True
-            self.setup_nfs_ip = "127.0.0.1"
+            self.setup_nfs_ip = params.get("nfs_server_ip", "127.0.0.1")
             path.find_command("service")
             path.find_command("exportfs")
 
