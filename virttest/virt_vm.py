@@ -1216,7 +1216,10 @@ class BaseVM(object):
                 if serial:
                     break
                 raise
-            except remote.LoginProcessTerminatedError:
+            except remote.LoginProcessTerminatedError as e:
+                if "No route to host" in e.output:
+                    logging.debug("Remote Login Continue:%s, %s" % (e.status, e.output))
+                    continue
                 raise
             except Exception as err:
                 error = err
