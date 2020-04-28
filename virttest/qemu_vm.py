@@ -46,6 +46,7 @@ from virttest.qemu_devices import qdevices, qcontainer
 from virttest.qemu_devices.utils import DeviceError
 from virttest.qemu_capabilities import Flags
 
+from provider import qemu_version
 
 class QemuSegFaultError(virt_vm.VMError):
 
@@ -1649,7 +1650,8 @@ class VM(virt_vm.BaseVM):
                                     numa_mem, numa_cpus, numa_nodeid)
             devices.insert(StrDev('numa', cmdline=cmdline))
 
-            if numa_memdev is not None and 'aarch64' in params.get('vm_arch_name', arch.ARCH):
+            if numa_memdev is not None and 'aarch64' in params.get('vm_arch_name', arch.ARCH)\
+                and not qemu_version.version_compare(4, 1, 0):
                 cmdline = add_numa_object_mem(devices, numa_memdev, host_nodes,
                                               policy_mem, prealloc_mem, mem_path,
                                               node_mem_size)
