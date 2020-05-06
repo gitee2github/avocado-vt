@@ -1226,12 +1226,15 @@ class DevContainer(object):
                           % aavmf_vars)
             devices.append(qdevices.QStringDevice('AAVMF_VARS',
                                                   cmdline=aavmf_vars))
-
+            # add QCPUBus for machine_arm64_pci, while vcpu hotplug need vcpu bus info.
             bus = (qdevices.QPCIEBus('pcie.0', 'PCIE', root_port_type, 'pci.0'),
                    qdevices.QStrictCustomBus(None, [['chassis'], [256]],
                                              '_PCI_CHASSIS', first_port=[1]),
                    qdevices.QStrictCustomBus(None, [['chassis_nr'], [256]],
-                                             '_PCI_CHASSIS_NR', first_port=[1]))
+                                             '_PCI_CHASSIS_NR', first_port=[1]),
+                   qdevices.QCPUBus(params.get("cpu_model"), [[""], [0]],
+                                    "vcpu"))
+
             devices.append(qdevices.QStringDevice('machine', cmdline=cmd,
                                                   child_bus=bus,
                                                   aobject="pci.0"))
