@@ -1584,6 +1584,28 @@ class VM(virt_vm.BaseVM):
             elif smp_values.count(0) > 1:
                 if vcpu_maxcpus == 1 and max(smp_values) < 2:
                     vcpu_sockets = vcpu_dies = vcpu_cores = vcpu_threads = 1
+                # suggest when only confirm VM maxvcpus, create vm by default configuration
+                # e.g: thread = 1 or 2 (different platform)
+                elif vcpu_sockets == 0 and vcpu_cores == 0 and vcpu_threads == 0:
+                    logging.warning("Configuration of sockets, cores and threads are missing"
+                                    " suggest create vm by default "
+                                    "%s" % self.name)
+                    vcpu_dies = vcpu_dies or 1
+                    if platform.machine() == 'aarch64':
+                        vcpu_threads = 1
+                    else:
+                        if int(vcpu_maxcpus) % 2 == 0:
+                            vcpu_threads = 2
+                        else:
+                            vcpu_threads = 1
+                    if vcpu_maxcpus == 2:
+                        vcpu_sockets = 1
+                    else:
+                        if int(vcpu_maxcpus) % 2 == 0:
+                            vcpu_sockets = 2
+                        else:
+                            vcpu_sockets = 1
+                    vcpu_cores = vcpu_maxcpus // (vcpu_sockets * vcpu_threads * vcpu_dies)
                 else:
                     smp_err = ("Two or more non-zero parameters are missing to"
                                " calculate the available SMP topology for VM "
@@ -1592,7 +1614,12 @@ class VM(virt_vm.BaseVM):
             hotpluggable_cpus = len(params.objects("vcpu_devices"))
             if params["machine_type"].startswith("pseries"):
                 hotpluggable_cpus *= vcpu_threads
-            smp = smp or vcpu_maxcpus - hotpluggable_cpus
+            if not smp:
+                smp = 2
+            elif hotpluggable_cpus != 0:
+                smp = vcpu_maxcpus - hotpluggable_cpus
+            else:
+                smp = smp
         else:
             if smp == 0 or vcpu_sockets == 0:
                 vcpu_dies = vcpu_dies or 1
