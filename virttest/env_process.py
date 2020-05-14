@@ -15,6 +15,7 @@ except ImportError:
     from urllib2 import ProxyHandler, build_opener, install_opener
 
 import aexpect
+import platform
 from avocado.utils import process as a_process
 from avocado.utils import crypto
 from avocado.utils import path
@@ -1035,6 +1036,10 @@ def preprocess(test, params, env):
 
     if vm_type == "qemu":
         qemu_path = utils_misc.get_qemu_binary(params)
+        # aarch64 use "qemu-kvm -M machine_type" instead.
+        if platform.machine() == 'aarch64':
+            machine_type = params.get("machine_type").split(':', 1)[1]
+            qemu_path = qemu_path + " -M" + " %s" % machine_type
         if (utils_qemu.has_device_category(qemu_path, "CPU")
                 and params.get("cpu_driver") is None):
             cpu_model = params.get("cpu_model")
