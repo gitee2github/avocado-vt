@@ -1204,11 +1204,14 @@ def cpus_parser(cpulist):
         return sorted(list(cpus_set))
 
 
-def get_qemu_cpu_models(qemu_binary):
+def get_qemu_cpu_models(qemu_binary, extra_params=None):
     """Get listing of CPU models supported by QEMU
     Get list of CPU models by parsing the output of <qemu> -cpu '?'
     """
-    cmd = qemu_binary + " -cpu '?'"
+    if extra_params is not None:
+        cmd = qemu_binary + extra_params + " -cpu '?'"
+    else:
+        cmd = qemu_binary + " -cpu '?'"
     result = process.run(cmd, verbose=False)
     return extract_qemu_cpu_models(results_stdout_52lts(result))
 
@@ -1229,7 +1232,13 @@ def get_qemu_best_cpu_model(params):
     """
     host_cpu_models = get_host_cpu_models()
     qemu_binary = utils_misc.get_qemu_binary(params)
-    qemu_cpu_models = get_qemu_cpu_models(qemu_binary)
+    # aarch64 use 'qemu_binary -M machine_type -cpu ?' to get supported cpu models.
+    if platform.machine() == 'aarch64':
+        machine_type = params.get("machine_type").split(':', 1)[1]
+        extra_params = " -M" + " %s" % machine_type
+        qemu_cpu_models = get_qemu_cpu_models(qemu_binary, extra_params)
+    else:
+        qemu_cpu_models = get_qemu_cpu_models(qemu_binary)
     # Let's try to find a suitable model on the qemu list
     for host_cpu_model in host_cpu_models:
         if host_cpu_model in qemu_cpu_models:

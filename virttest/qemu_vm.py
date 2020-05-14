@@ -13,6 +13,7 @@ import re
 import random
 import sys
 import math
+import platform
 
 from functools import partial, reduce
 from operator import mul
@@ -1409,11 +1410,20 @@ class VM(virt_vm.BaseVM):
                                                                  verbose=False,
                                                                  ignore_status=True,
                                                                  shell=True)).split(',')[0]
-        support_cpu_model = decode_to_text(process.system_output("%s -cpu \\?" % qemu_binary,
-                                                                 verbose=False,
-                                                                 ignore_status=True,
-                                                                 shell=True),
-                                           errors='replace')
+        # aarch64 use "qemu-kvm -M machine_type -cpu ?" to get supported cpu models.
+        if platform.machine() == 'aarch64':
+            machine_type = params.get("machine_type").split(':', 1)[1]
+            support_cpu_model = decode_to_text(process.system_output("%s -M %s -cpu \\? " % (qemu_binary, machine_type),
+                                                                     verbose=False,
+                                                                     ignore_status=True,
+                                                                     shell=True),
+                                               errors='replace')
+        else:
+            support_cpu_model = decode_to_text(process.system_output("%s -cpu \\?" % qemu_binary,
+                                                                     verbose=False,
+                                                                     ignore_status=True,
+                                                                     shell=True),
+                                               errors='replace')
 
         self.last_driver_index = 0
         # init the dict index_in_use
