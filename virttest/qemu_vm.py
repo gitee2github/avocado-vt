@@ -1542,7 +1542,7 @@ class VM(virt_vm.BaseVM):
         vcpu_threads = params.get_numeric("vcpu_threads")
         vcpu_dies = params.get("vcpu_dies", 0)
         enable_dies = vcpu_dies != "INVALID" and Flags.SMP_DIES in devices.caps
-        if not enable_dies:
+        if not enable_dies or vcpu_dies == 0:
             # Set dies=1 when computing missing values
             vcpu_dies = 1
         # PC target support SMP 'dies' parameter since qemu 4.1
