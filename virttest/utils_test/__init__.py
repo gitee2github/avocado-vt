@@ -2093,6 +2093,7 @@ class Stress(object):
         stress_cmds = stress_cmds or stress_type
         self.stress_cmds = self.params.get('stress_cmds_%s' % stress_type,
                                            stress_cmds)
+        stress_args = params['stress_args']
         self.stress_args = self.params.get("%s_args" % stress_type,
                                            stress_args)
         self.stress_package = self.params.get("stress_package")
@@ -2137,10 +2138,16 @@ class Stress(object):
         load stress tool in guest
         """
         self.install()
-        self.cmd_output_safe('cd %s' % os.path.join(self.dst_path,
-                                                    self.base_name, self.work_path))
-        launch_cmds = 'nohup %s %s > /dev/null &' % (
-            self.stress_cmds, self.stress_args)
+        if 'iozone' in self.download_url:
+            cmd = 'find %s -name "current"' % self.dst_path
+            install_path = self.cmd_output_safe(cmd).replace("\n", "/")
+            launch_cmds = 'nohup %s/%s %s > /dev/null &' % (install_path,
+                                                            self.stress_cmds, self.stress_args)
+        else:
+            self.cmd_output_safe('cd %s' % os.path.join(self.dst_path,
+                                                        self.base_name, self.work_path))
+            launch_cmds = 'nohup %s %s > /dev/null &' % (
+                self.stress_cmds, self.stress_args)
         logging.info("Launch stress with command: %s", launch_cmds)
         try:
             self.cmd_launch(launch_cmds)
@@ -2229,7 +2236,10 @@ class Stress(object):
                                                     tmp_path)
             else:
                 self.base_name = self.downloaded_file_path
-        source = os.path.join(tmp_path, self.base_name)
+        if self.base_name == '.':
+            source = tmp_path
+        else:
+            source = os.path.join(tmp_path, self.base_name)
         if self.remote_host:
             logging.info('Copy stress tool to remote host')
             args = (self.remote_host.__getitem__('server_ip'), 'scp',
@@ -2268,9 +2278,14 @@ class Stress(object):
                 return
 
         self.download_stress()
-        install_path = os.path.join(self.dst_path, self.base_name,
-                                    self.work_path)
-        self.make_cmds = "cd %s;%s" % (install_path, self.make_cmds)
+        if 'iozone' in self.download_url:
+            cmd = 'find %s -name "current"' % self.dst_path
+            install_path = self.cmd_output_safe(cmd).replace("\n", "/")
+            self.make_cmds = "cd %s; make linux" % install_path
+        else:
+            install_path = os.path.join(self.dst_path, self.base_name,
+                                        self.work_path)
+            self.make_cmds = "cd %s;%s" % (install_path, self.make_cmds)
         logging.info('installing the %s with %s', self.stress_type,
                      self.make_cmds)
         status, output = self.cmd_status_output(self.make_cmds,
