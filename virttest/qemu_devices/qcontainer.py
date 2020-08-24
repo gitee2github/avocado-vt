@@ -1963,6 +1963,9 @@ class DevContainer(object):
         # More info from qemu commit 91a097e74.
         if not filename:
             cache = None
+        elif filename.startswith('nvme://'):
+            # NVMe controller doesn't support write cache configuration
+            cache = 'writethrough'
         if Flags.BLOCKDEV in self.caps:
             file_opts = qemu_storage.filename_to_file_opts(filename)
             for key, value in six.iteritems(file_opts):
