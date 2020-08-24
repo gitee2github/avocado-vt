@@ -1234,7 +1234,16 @@ def get_qemu_best_cpu_model(params):
     qemu_binary = utils_misc.get_qemu_binary(params)
     # aarch64 use 'qemu_binary -M machine_type -cpu ?' to get supported cpu models.
     if platform.machine() == 'aarch64':
-        machine_type = params.get("machine_type").split(':', 1)[1]
+        machine_type = params.get("machine_type")
+        if ':' in machine_type:
+            machine_type = machine_type.split(':', 1)[1]
+        # Needed to judge if machine_type supported in arm
+        hvm_or_pv = params.get("hvm_or_pv", "hvm")
+        from virttest.utils_test import libvirt
+        support_machine_type = libvirt.get_machine_types('aarch64', hvm_or_pv, ignore_status=False)
+        if machine_type not in support_machine_type:
+            logging.warn("Unsupported machine type %s", machine_type)
+            machine_type = 'virt'
         extra_params = " -M" + " %s" % machine_type
         qemu_cpu_models = get_qemu_cpu_models(qemu_binary, extra_params)
     else:

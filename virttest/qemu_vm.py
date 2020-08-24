@@ -1412,7 +1412,17 @@ class VM(virt_vm.BaseVM):
                                                                  shell=True)).split(',')[0]
         # aarch64 use "qemu-kvm -M machine_type -cpu ?" to get supported cpu models.
         if platform.machine() == 'aarch64':
-            machine_type = params.get("machine_type").split(':', 1)[1]
+            machine_type = params.get("machine_type")
+            if ':' in machine_type:
+                machine_type = machine_type.split(':', 1)[1]
+            # Needed to judge if machine_type supported in arm
+            hvm_or_pv = params.get("hvm_or_pv", "hvm")
+            from virttest.utils_test import libvirt
+            support_machine_type = libvirt.get_machine_types(
+                'aarch64', hvm_or_pv, ignore_status=False)
+            if machine_type not in support_machine_type:
+                logging.warn("Unsupported machine type %s", machine_type)
+                machine_type = 'virt'
             support_cpu_model = decode_to_text(process.system_output("%s -M %s -cpu \\? " % (qemu_binary, machine_type),
                                                                      verbose=False,
                                                                      ignore_status=True,
