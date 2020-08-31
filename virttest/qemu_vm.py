@@ -42,10 +42,12 @@ from virttest import storage
 from virttest import error_context
 from virttest import utils_vsock
 from virttest import error_event
+from virttest import utils_qemu
 from virttest.compat_52lts import decode_to_text
 from virttest.qemu_devices import qdevices, qcontainer
 from virttest.qemu_devices.utils import DeviceError
 from virttest.qemu_capabilities import Flags
+from virttest.utils_version import VersionInterval
 
 from provider import qemu_version
 
@@ -775,9 +777,6 @@ class VM(virt_vm.BaseVM):
 
         def add_tcp_redir(devices, host_port, guest_port):
             # If the new syntax is supported, don't add -redir
-            if 'openEuler' in distro.linux_distribution():
-                logging.warn("option -redir no support for openEuler")
-                return ""
             if "[,hostfwd=" in devices.get_help_text():
                 return ""
             else:
@@ -2182,8 +2181,11 @@ class VM(virt_vm.BaseVM):
                                   cmdline=add_initrd(initrd)))
 
         for host_port, guest_port in redirs:
-            cmd = add_tcp_redir(devices, host_port, guest_port)
-            devices.insert(StrDev('tcp-redir', cmdline=cmd))
+            # -redir was deprecated in v2.6.0 and removed in v3.1.0
+            qemu_version = utils_qemu.get_qemu_version(qemu_binary)[0]
+            if qemu_version not in VersionInterval("[3.1.0,)"):
+                cmd = add_tcp_redir(devices, host_port, guest_port)
+                devices.insert(StrDev('tcp-redir', cmdline=cmd))
 
         cmd = ""
         if params.get("display") == "vnc":
