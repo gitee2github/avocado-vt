@@ -1067,7 +1067,7 @@ class BaseVM(object):
 
     @error_context.context_aware
     def login(self, nic_index=0, timeout=LOGIN_TIMEOUT,
-              username=None, password=None):
+              username=None, password=None, address=None):
         """
         Log into the guest via SSH/Telnet/Netcat.
         If timeout expires while waiting for output from the guest (e.g. a
@@ -1086,11 +1086,13 @@ class BaseVM(object):
         prompt = self.params.get("shell_prompt", r"[\#\$]\s*$")
         linesep = eval("'%s'" % self.params.get("shell_linesep", r"\n"))
         client = self.params.get("shell_client")
-        try:
-            address = self.get_address(nic_index, self.ip_version)
-        except (VMIPAddressMissingError, VMAddressVerificationError) as e:
-            utils_net.update_mac_ip_address(self, timeout)
-            address = self.get_address(nic_index, self.ip_version)
+
+        if not address:
+            try:
+                address = self.get_address(nic_index, self.ip_version)
+            except (VMIPAddressMissingError, VMAddressVerificationError) as e:
+                utils_net.update_mac_ip_address(self, timeout)
+                address = self.get_address(nic_index, self.ip_version)
         neigh_attach_if = ""
         if self.ip_version == "ipv6" and address.lower().startswith("fe80"):
             neigh_attach_if = utils_net.get_neigh_attch_interface(address)
@@ -1188,8 +1190,9 @@ class BaseVM(object):
         logging.debug("Attempting to log into '%s' (timeout %ds)",
                       self.name, timeout)
         start_time = time.time()
+        address = None
         try:
-            self.wait_for_get_address(nic_index,
+            address = self.wait_for_get_address(nic_index,
                                       timeout=timeout,
                                       ip_version=self.ip_version)
         except Exception as err:
@@ -1211,7 +1214,7 @@ class BaseVM(object):
         while time.time() < end_time or not_tried:
             try:
                 return self.login(nic_index, internal_timeout,
-                                  username, password)
+                                  username, password, address)
             except (remote.LoginAuthenticationError,
                     remote.LoginBadClientError):
                 if serial:
