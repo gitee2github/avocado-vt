@@ -20,7 +20,7 @@ def get_host_timezone():
     Get host's timezone
     """
     timezone_cmd = 'timedatectl | %s "Time zone"' % grep_binary
-    timezone_pattern = '^(?:\s+Time zone:\s)(\w+\/\S+|UTC)(?:\s\(\S+,\s)([+|-]\d{4})\)$'
+    timezone_pattern = '^(?:\s+Time zone:\s)(\w+\/\S+|UTC)(?:\s\(\S+,\s)([+|-]\d{4})\)(?:\s*)$'
     error_context.context("Get host's timezone", logging.info)
     host_timezone = decode_to_text(
         process.system_output(timezone_cmd, timeout=240, shell=True))
