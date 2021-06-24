@@ -631,6 +631,9 @@ class BaseVM(object):
         if vm_type == 'libvirt':
             from virttest import libvirt_vm
             return libvirt_vm.VM
+        if vm_type == 'stratovirt':
+            from virttest import stratovirt_vm
+            return stratovirt_vm.VM
         if vm_type == 'v2v':
             if target == 'libvirt' or target is None:
                 from virttest import libvirt_vm
