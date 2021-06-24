@@ -86,6 +86,15 @@ class ConsoleManager(object):
         if self._console is not None:
             self.status_test_command = self._console.status_test_command
 
+    def config_console(self, console):
+        """Configure console"""
+        self._console = console
+        self.status_test_command = self._console.status_test_command
+
+    def close(self):
+        """Close console"""
+        self._console.close()
+
     @lock
     def proxy_call(self, func, *args, **kwargs):
         """Proxy function call to call functions provided by a Console."""
