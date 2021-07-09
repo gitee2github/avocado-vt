@@ -35,7 +35,8 @@ recommended_programs = {'qemu': [('qemu-kvm', 'kvm'), ('qemu-img',),
                         'openvswitch': [],
                         'lvsb': [('semanage',), ('getfattr',), ('restorecon',), ('virt-sandbox')],
                         'v2v': [],
-                        'libguestfs': [('perl',)]}
+                        'libguestfs': [('perl',)],
+                        'stratovirt': []}
 
 mandatory_programs = {'qemu': basic_program_requirements + ['gcc'],
                       'spice': basic_program_requirements + ['gcc'],
@@ -43,7 +44,8 @@ mandatory_programs = {'qemu': basic_program_requirements + ['gcc'],
                       'openvswitch': basic_program_requirements,
                       'lvsb': ['virt-sandbox', 'virt-sandbox-service', 'virsh'],
                       'v2v': basic_program_requirements,
-                      'libguestfs': basic_program_requirements}
+                      'libguestfs': basic_program_requirements,
+                      'stratovirt': basic_program_requirements}
 
 mandatory_headers = {'qemu': ['Python.h', 'types.h', 'socket.h', 'unistd.h'],
                      'spice': [],
@@ -51,7 +53,8 @@ mandatory_headers = {'qemu': ['Python.h', 'types.h', 'socket.h', 'unistd.h'],
                      'openvswitch': [],
                      'v2v': [],
                      'lvsb': [],
-                     'libguestfs': []}
+                     'libguestfs': [],
+                     'stratovirt': []}
 
 first_subtest = {'qemu': ['unattended_install', 'steps'],
                  'spice': ['unattended_install', 'steps'],
@@ -59,7 +62,8 @@ first_subtest = {'qemu': ['unattended_install', 'steps'],
                  'openvswitch': ['unattended_install'],
                  'v2v': ['unattended_install'],
                  'libguestfs': ['unattended_install'],
-                 'lvsb': []}
+                 'lvsb': [],
+                 'stratovirt': []}
 
 last_subtest = {'qemu': ['shutdown'],
                 'spice': ['shutdown'],
@@ -67,7 +71,8 @@ last_subtest = {'qemu': ['shutdown'],
                 'openvswitch': ['shutdown'],
                 'v2v': ['shutdown'],
                 'libguestfs': ['shutdown'],
-                'lvsb': []}
+                'lvsb': [],
+                'stratovirt': []}
 
 test_filter = ['__init__', 'cfg', 'dropin.py']
 
@@ -406,7 +411,7 @@ def create_subtests_cfg(t_type):
         provider_info_shared.append(
             asset.get_test_provider_info(shared_provider))
 
-    if not t_type == 'lvsb':
+    if not t_type == 'lvsb' and not t_type == 'stratovirt':
         for subdir in shared_subdirs:
             shared_test_list += data_dir.SubdirGlobList(subdir,
                                                         '*.py',
