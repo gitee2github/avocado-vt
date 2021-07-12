@@ -226,6 +226,8 @@ def preprocess_vm(test, params, env, name):
         if vm_type == 'libvirt' or vm_type == 'v2v':
             if not vm.is_alive():
                 start_vm = True
+        elif vm_type == 'stratovirt':
+            start_vm = True
         else:
             if not vm.is_alive():
                 start_vm = True
@@ -245,6 +247,9 @@ def preprocess_vm(test, params, env, name):
         elif vm_type == "v2v":
             vm.params = params
             vm.start()
+        elif vm_type == "stratovirt":
+            vm.params = params
+            vm.launch()
         else:
             if update_virtnet:
                 vm.update_vm_id()
@@ -540,7 +545,7 @@ def postprocess_vm(test, params, env, name):
                 logging.error("Could not copy the extra dump '%s' from the vm '%s'",
                               dump_path, vm.name)
 
-    if params.get("kill_vm") == "yes":
+    if params.get("kill_vm") == "yes" and not params.get("vm_type") == "stratovirt":
         kill_vm_timeout = float(params.get("kill_vm_timeout", 0))
         if kill_vm_timeout:
             utils_misc.wait_for(vm.is_dead, kill_vm_timeout, 0, 1)
